@@ -1,0 +1,142 @@
+# Gateway plus the RAG dependencies.
+# Docker Desktop starts these again after a reboot because of restart: unless-stopped.
+#
+# PostgreSQL:
+# - Local (default): stay on the Windows host. Gateway uses host.docker.internal
+#   unless POSTGRES_HOST is set in .env. Do NOT enable the with-postgres profile
+#   for day-to-day local testing, or you will hit an empty container DB.
+# - Cloud / ECS: enable profile with-postgres and set POSTGRES_HOST=postgres
+#   in the server .env so Gateway talks to the compose Postgres container.
+#   Example: COMPOSE_PROFILES=with-postgres docker compose up -d
+#   (or put COMPOSE_PROFILES=with-postgres in the server .env)
+
+services:
+  gateway:
+    build: .
+    container_name: fs-gateway
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      MINIO_ENDPOINT: minio:9000
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      MILVUS_URI: http://milvus:19530
+      POSTGRES_HOST: ${POSTGRES_HOST:-host.docker.internal}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - redis
+      - minio
+      - elasticsearch
+      - milvus
+    restart: unless-stopped
+
+  # Isolated Postgres for cloud/ECS. Opt-in via profile so local host PG is unchanged.
+  postgres:
+    profiles: ["with-postgres"]
+    image: postgres:17
+    container_name: fs-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-fs_agentos}
+    volumes:
+      - fs-postgres-data:/var/lib/postgresql/data
+    # No host port mapping: avoids clashing with local Windows PostgreSQL on 5432.
+    # Other compose services reach it as hostname "postgres" on the internal network.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7
+    container_name: fs-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  minio:
+    image: minio/minio
+    container_name: fs-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - fs-minio-data:/data
+    restart: unless-stopped
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.3
+    container_name: fs-elasticsearch
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      xpack.security.http.ssl.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - fs-elasticsearch-data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+
+  milvus-etcd:
+    image: quay.io/coreos/etcd:v3.5.18
+    container_name: fs-milvus-etcd
+    environment:
+      ETCD_AUTO_COMPACTION_MODE: revision
+      ETCD_AUTO_COMPACTION_RETENTION: "1000"
+      ETCD_QUOTA_BACKEND_BYTES: "4294967296"
+      ETCD_SNAPSHOT_COUNT: "50000"
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    volumes:
+      - fs-milvus-etcd-data:/etcd
+    restart: unless-stopped
+
+  milvus-minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    container_name: fs-milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    command: minio server /minio_data --console-address ":9001"
+    volumes:
+      - fs-milvus-minio-data:/minio_data
+    restart: unless-stopped
+
+  milvus:
+    image: milvusdb/milvus:v2.5.14
+    container_name: fs-milvus
+    command: ["milvus", "run", "standalone"]
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      ETCD_ENDPOINTS: milvus-etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+      MINIO_ACCESS_KEY_ID: minioadmin
+      MINIO_SECRET_ACCESS_KEY: minioadmin
+    ports:
+      - "19530:19530"
+      - "9091:9091"
+    volumes:
+      - fs-milvus-data:/var/lib/milvus
+    depends_on:
+      - milvus-etcd
+      - milvus-minio
+    restart: unless-stopped
+
+volumes:
+  fs-postgres-data:
+  fs-minio-data:
+  fs-elasticsearch-data:
+  fs-milvus-etcd-data:
+  fs-milvus-minio-data:
+  fs-milvus-data:

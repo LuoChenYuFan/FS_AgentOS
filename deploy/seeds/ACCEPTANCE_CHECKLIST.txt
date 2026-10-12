@@ -1,0 +1,19 @@
+多租户管理台 + 简历 CMS 验收清单
+================================
+
+后端
+1. 启动 Gateway（会自动 migrate 0007 并 bootstrap）
+2. 浏览器打开 http://127.0.0.1:8000/admin 用 admin 登录
+3. 应看到「租户文件夹」，其中有 yufan
+4. 进入 yufan → 简历栏目，改基本信息某一字段并保存
+5. curl http://127.0.0.1:8000/v1/sites/yufan/resume 应看到新内容；关掉「个人优势」后公开 JSON 不再包含 Strengths
+6. 知识库页上传文档，只出现在该租户下
+
+Unity
+1. 编辑器 Play：ResumeContentLoader 请求 http://127.0.0.1:8001/v1/sites/yufan/resume（端口按本机 Gateway）
+2. 面板文案被覆盖；关闭栏目后面板切换按钮与路牌隐藏
+3. AI 助手仍用 unity 账号登录 /v1/tasks
+
+WebGL 上线
+- webGlResumeUrl = /resume/Backend/yufan/v1/sites/yufan/resume
+- webGlApiUrl     = /resume/Backend/yufan/v1/tasks

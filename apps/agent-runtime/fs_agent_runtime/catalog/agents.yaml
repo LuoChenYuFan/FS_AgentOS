@@ -1,0 +1,57 @@
+- name: 聊天助手
+  when: 单点信息查询、闲聊、无明确归属的杂项
+  not_when: 需要查阅内部知识库的问题
+  allowed_skills: [查天气, 查路线, 查酒店]
+  produces:
+    weather: {summary: string, temp: number}
+    route: {duration_min: number, distance_km: number, fare: number}
+    hotel: {avg_price: number, count: number}
+  side_effect: none
+  loop: ReAct
+  model_tier: cheap
+
+- name: 行程规划
+  when: 用户要规划旅行、行程、攻略或多日安排
+  not_when: 只问单个景点或只查天气
+  allowed_skills: [规划行程, 查天气, 查路线, 查酒店]
+  produces:
+    itinerary: object
+    cost_estimate: number
+  side_effect: none
+  loop: Plan-and-Execute
+  model_tier: strong
+
+- name: 发邮件
+  when: 用户要求把某事以邮件形式告知某人
+  not_when: 只查询信息、不需要寄出
+  allowed_skills: [发邮件]
+  produces:
+    mail: {summary: string, sent: boolean}
+  side_effect: irreversible
+  needs_approval: true
+  loop: 固定流程
+  model_tier: strong
+
+- name: 计算
+  when: 把已经查出的数字做比较或相减
+  not_when: 直接回答用户或发送邮件
+  allowed_skills: [subtract, amount_from_text]
+  produces:
+    cap: {amount: number}
+    gap: {value: number}
+  side_effect: none
+  loop: 固定流程
+  model_tier: cheap
+
+- name: RAG Agent
+  when: 用户询问需要查阅内部文档、知识库、制度或历史资料的问题
+  not_when: 通用常识问答、实时信息查询
+  allowed_skills: [rag_query]
+  produces:
+    answer: string
+    citations: array
+    confidence: number
+    knowledge: {chunks: array, sources: array, confidence: number}
+  side_effect: none
+  loop: ReAct
+  model_tier: cheap

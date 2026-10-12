@@ -1,0 +1,62 @@
+[project]
+name = "fs-agentos"
+version = "0.1.0"
+description = "Enterprise multi-agent collaboration platform (FS_AgentOS)"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fs-common",
+    "fs-eventbus",
+    "fs-skill-sdk",
+    "fs-rag-sdk",
+    "fs-memory-sdk",
+    "fs-gateway",
+    "fs-intent-funnel",
+    "fs-llm-gateway",
+    "fs-orchestrator",
+    "fs-agent-runtime",
+    "fs-tool-interceptor",
+    "fs-skill-runtime",
+    "fs-memory-service",
+    "fs-rag-service",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "langgraph>=0.3.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.3.0",
+    "opentelemetry-api>=1.28.0",
+    "opentelemetry-sdk>=1.28.0",
+    "opentelemetry-instrumentation-fastapi>=0.49b0",
+    "pydantic>=2.9.0",
+    "pydantic-settings>=2.6.0",
+    "httpx>=0.27.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["apps/*", "packages/*"]
+exclude = ["apps/console"]
+
+[tool.uv.sources]
+fs-common = { workspace = true }
+fs-eventbus = { workspace = true }
+fs-skill-sdk = { workspace = true }
+fs-rag-sdk = { workspace = true }
+fs-memory-sdk = { workspace = true }
+fs-gateway = { workspace = true }
+fs-intent-funnel = { workspace = true }
+fs-llm-gateway = { workspace = true }
+fs-orchestrator = { workspace = true }
+fs-agent-runtime = { workspace = true }
+fs-tool-interceptor = { workspace = true }
+fs-skill-runtime = { workspace = true }
+fs-memory-service = { workspace = true }
+fs-rag-service = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.0",
+    "ruff>=0.8.0",
+]

@@ -1,0 +1,34 @@
+[project]
+name = "fs-gateway"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "fs-common",
+    "fs-agent-runtime",
+    "fs-intent-funnel",
+    "fs-llm-gateway",
+    "fs-memory-service",
+    "fs-orchestrator",
+    "fs-rag-service",
+    "fastapi>=0.115.0",
+    "python-multipart>=0.0.17",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic-settings>=2.6.0",
+    "PyJWT>=2.10.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fs_gateway"]
+
+[tool.uv.sources]
+fs-common = { workspace = true }
+fs-agent-runtime = { workspace = true }
+fs-intent-funnel = { workspace = true }
+fs-llm-gateway = { workspace = true }
+fs-memory-service = { workspace = true }
+fs-orchestrator = { workspace = true }
+fs-rag-service = { workspace = true }

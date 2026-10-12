@@ -1,0 +1,28 @@
+[project]
+name = "fs-rag-service"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "elasticsearch>=8.17,<9",
+    "fs-common",
+    "fs-orchestrator",
+    "fs-rag-sdk",
+    "httpx>=0.28.1",
+    "minio>=7.2.20",
+    "oss2>=2.19.1",
+    "pymilvus>=2.5.8,<2.6",
+    "pypdf>=5.1.0",
+    "redis>=8.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fs_rag_service"]
+
+[tool.uv.sources]
+fs-common = { workspace = true }
+fs-orchestrator = { workspace = true }
+fs-rag-sdk = { workspace = true }

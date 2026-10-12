@@ -1,0 +1,19 @@
+[project]
+name = "fs-tool-interceptor"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "fs-common",
+    "fs-skill-sdk",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["fs_tool_interceptor"]
+
+[tool.uv.sources]
+fs-common = { workspace = true }
+fs-skill-sdk = { workspace = true }

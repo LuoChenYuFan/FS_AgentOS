@@ -1,0 +1,54 @@
+skills:
+  - name: 查天气
+    input: {城市: string, 日期: string}
+    produces: {summary: string, temp: number, condition: string}
+    side_effect: none
+    timeout: 35s
+
+  - name: 规划行程
+    input: {城市: string, 关键词: string, 天数: string, 起点: string, 终点: string, 方式: string, 途经: string}
+    produces: {summary: string, itinerary: object, cost_estimate: number}
+    side_effect: none
+    timeout: 30s
+
+  - name: 查路线
+    input: {起点: string, 终点: string, 方式: string}
+    produces: {duration_min: number, distance_km: number, steps: array, fare: number}
+    side_effect: none
+    timeout: 10s
+
+  - name: 查酒店
+    input: {城市: string, 星级: number, 日期: string}
+    produces: {hotels: array, avg_price: number, count: number}
+    side_effect: none
+    timeout: 30s
+
+  - name: subtract
+    input: {left: number, right: number}
+    produces: {value: number}
+    side_effect: none
+    timeout: 1s
+
+  - name: amount_from_text
+    input: {text: string}
+    produces: {amount: number}
+    side_effect: none
+    timeout: 1s
+
+  - name: rag_query
+    input: {query: string, top_k: number, scope_filter: string}
+    produces: {chunks: array, sources: array, confidence: number}
+    side_effect: none
+    timeout: 15s
+
+  - name: 发邮件
+    input: {收件人: string, 主题: string, 正文: string}
+    produces: {summary: string, sent: boolean}
+    side_effect: none
+    timeout: 30s
+
+bindings:
+  - {agent: 行程规划, skill: 规划行程, timeout: 30s, max_results: 8}
+  - {agent: 行程规划, skill: 查酒店, timeout: 30s, max_results: 50}
+  - {agent: 聊天助手, skill: 查酒店, timeout: 10s, max_results: 5}
+  - {agent: 发邮件, skill: 发邮件, timeout: 30s, max_results: 1}
